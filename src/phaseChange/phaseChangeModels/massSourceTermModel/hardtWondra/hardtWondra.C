@@ -65,15 +65,14 @@ Foam::hardtWondra::hardtWondra
 {
 
 }
-
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
 
 Foam::tmp<Foam::volScalarField>
 Foam::hardtWondra::massSource( volScalarField& rhoSource)
 {
     tmp<volScalarField> massSource(rhoSource * 0.0);
     volScalarField& massSourceRef = massSource.ref();
+
     const fvMesh& mesh = phase1_.mesh();
 
     dimensionedScalar DPsi
@@ -118,7 +117,7 @@ Foam::hardtWondra::massSource( volScalarField& rhoSource)
     );
     dimensionedScalar intPsiVapor
     (
-        "intPsiLiquid",
+        "intPsiVapor",
         dimensionSet(1,0,-1,0,0,0,0),
         0.0
     );
@@ -152,7 +151,6 @@ Foam::hardtWondra::massSource( volScalarField& rhoSource)
     {
         Nv = intPsi0/intPsiVapor;
     }
-
 
     //- Set source terms in cells with alpha1 < cutoff or alpha1 > 1-cutoff
     forAll(mesh.C(),celli)

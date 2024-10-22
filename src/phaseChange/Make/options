@@ -6,6 +6,8 @@ EXE_INC = \
     -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/reactionThermo/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/solidSpecie/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/solidThermo/lnInclude \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/transportModels/compressible/compressibleTransportModel \
     -I$(LIB_SRC)/transportModels/twoPhaseProperties/alphaContactAngle/alphaContactAngle \
@@ -15,6 +17,7 @@ EXE_INC = \
     -I$(LIB_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
     -I$(LIB_SRC)/TurbulenceModels/phaseCompressible/lnInclude \
     -I../thermoDynamics/twoPhaseModelThermo/lnInclude \
+    -I../thermoDynamics/solidTabulatedThermo/lnInclude \
     -I../turbulence/VoFphaseCompressibleTurbulenceModels/lnInclude
 
 LIB_LIBS = \
@@ -23,10 +26,12 @@ LIB_LIBS = \
     -lfluidThermophysicalModels \
     -lreactionThermophysicalModels \
     -lspecie \
+    -lsolidSpecie \
     -ltwoPhaseMixture \
     -ldynamicMesh \
     -ltwoPhaseProperties \
     -L$(FOAM_USER_LIBBIN) \
     -lVoF \
     -ltwoPhaseModelThermo \
+    -lsolidTabulatedThermo \
     -lVoFphaseModelCompressibleTurbulenceModels

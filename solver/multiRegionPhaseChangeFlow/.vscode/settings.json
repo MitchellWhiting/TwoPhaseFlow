@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "multiRegionPhaseChangeFlow.C": "cpp",
+        "multiCourantNo.C": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}

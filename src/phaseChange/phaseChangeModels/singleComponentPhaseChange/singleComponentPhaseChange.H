@@ -39,10 +39,12 @@ SourceFiles
 #include "energySourceTermModel.H"
 #include "massSourceTermModel.H"
 #include "singleComponentSatProp.H"
+#include "microlayerModel.H"
 
 #include "phaseModel.H"
 #include "macroModel.H"
 #include "twoPhaseModelThermo.H"
+#include "solidThermo.H"
 #include "compressibleInterPhaseTransportModel.H"
 
 #include "fvScalarMatrix.H"
@@ -72,11 +74,15 @@ class singleComponentPhaseChange
 
     autoPtr<singleComponentSatProp> satProp_;
 
+    autoPtr<microlayerModel> microModel_;
+
     //- Thermo-package of phase 1
     const phaseModel& phase1_;
 
     //- Thermo-package of phase 2
     const phaseModel& phase2_;
+
+    const solidThermo& solid_;
 
     // reference to pressure
     const volScalarField& p_;
@@ -90,6 +96,15 @@ class singleComponentPhaseChange
     volScalarField massSource_;
 
     volScalarField alphaSource_;
+
+    ///////microlayer Sources//////////
+
+    volScalarField psi1_;
+
+    volScalarField massSourceML_;
+
+    volScalarField alphaSourceML_;
+
 
     bool limitHeatFlux_;
 
@@ -106,9 +121,10 @@ public:
         singleComponentPhaseChange
         (
             const twoPhaseModelThermo& mixture,
+            const solidThermo& solid,
             const volScalarField& p,
             const compressibleInterPhaseTransportModel& turbModel,
-            reconstructionSchemes &surf
+            reconstructionSchemes& surf
         );
 
     //- Destructor
@@ -200,7 +216,46 @@ public:
         return energyModel_->getalphaf();
     }
 
+    //////microlayer Sources/////////
 
+    volScalarField& massSourceML()
+    {
+        return massSourceML_;
+    }
+
+    volScalarField& alphaSourceML()
+    {
+        return alphaSourceML_;
+    }
+
+    const volScalarField& psi1()
+    {
+        return psi1_;
+    }
+
+    tmp<fvScalarMatrix> hSourceML()
+    {
+        return microModel_->hSourceML();
+    }
+
+    tmp<volScalarField> energySourceML()
+    {
+        return microModel_->energySourceML();
+    }
+
+    volScalarField& dml()
+    {
+        return microModel_->dml();
+    }
+
+    void initialiseML()
+    {
+        return microModel_->initialiseML();
+    }
+    void updateML()
+    {
+        return microModel_->updateML();
+    }
 
 };
 

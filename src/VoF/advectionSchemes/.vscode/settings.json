@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "isoAdvection.C": "cpp",
+        "advectionSchemes.C": "cpp",
+        "isoAdvectionTemplates.C": "cpp"
+    }
+}

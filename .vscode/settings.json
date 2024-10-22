@@ -1,7 +1,9 @@
 {
     "files.associations": {
         "*.H": "cpp",
-        "*.C": "cpp"
+        "*.C": "cpp",
+        "compare": "cpp",
+        "type_traits": "cpp"
     },
     "C_Cpp.intelliSenseEngine": "Tag Parser",
     "python.testing.pytestArgs": [

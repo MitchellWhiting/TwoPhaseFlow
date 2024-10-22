@@ -93,14 +93,12 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::Schrage::TSource1()
     const volScalarField& T2 = phase2_.thermo().T();
     const volScalarField& T1 = phase1_.thermo().T();
 
-
     volScalarField TSource
     (
         (2*evapCoeff_)/(2-evapCoeff_)
         *pow(satModel_.L(),2)/(pow(2*constant::mathematical::pi/(psi2*T2),0.5))
         *rho2/pow(TSat,1.5)
     );
-
     TSource.ref() *= mag(surf_.normal().internalField())/mesh.V();
 
     tmp<fvScalarMatrix> T1Source(fvm::Sp(TSource,T1) - TSource*TSat);

@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "compdynamicAlphaContactAngleVoxVoinovFvPatchScalarField.C": "cpp",
+        "dynamicAlphaContactAngleJiangFvPatchScalarField.C": "cpp"
+    }
+}

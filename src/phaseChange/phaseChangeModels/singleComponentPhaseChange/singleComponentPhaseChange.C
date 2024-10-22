@@ -33,6 +33,7 @@ License
 Foam::singleComponentPhaseChange::singleComponentPhaseChange
 (
     const twoPhaseModelThermo& mixture,
+    const solidThermo& solid,
     const volScalarField& p,
     const compressibleInterPhaseTransportModel& turbModel,
     reconstructionSchemes& surf
@@ -55,8 +56,10 @@ Foam::singleComponentPhaseChange::singleComponentPhaseChange
     macroModels_(),
     massModel_(nullptr),
     satProp_(nullptr),
+    microModel_(nullptr),
     phase1_(mixture.phase1()),
     phase2_(mixture.phase2()),
+    solid_(solid),
     p_(p),
     turbModel_(turbModel),
     surf_(surf),
@@ -96,12 +99,70 @@ Foam::singleComponentPhaseChange::singleComponentPhaseChange
         mesh_.time().timeName(),
         mesh_,
         IOobject::NO_READ,
-        IOobject::NO_WRITE
+        IOobject::AUTO_WRITE
     ),
         mesh_,
         dimensionedScalar("0", dimless/dimTime, 0),
         "zeroGradient"
     ),
+    psi1_
+    (
+        IOobject
+        (
+            "psi1_",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("0", dimDensity/dimTime, 0),
+        "zeroGradient"
+    ),
+    massSourceML_
+    (
+        IOobject
+        (
+        "massSourceML_",
+        mesh_.time().timeName(),
+        mesh_,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+        mesh_,
+        dimensionedScalar("0", dimDensity/dimTime, 0),
+        "zeroGradient"
+    ),
+    alphaSourceML_
+    (
+        IOobject
+        (
+        "alphaSourceML_",
+        mesh_.time().timeName(),
+        mesh_,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+        mesh_,
+        dimensionedScalar("0", dimless/dimTime, 0),
+        "zeroGradient"
+    ),
+    // dml_
+    // (
+    //     IOobject
+    //     (
+    //     "dml_",
+    //     mesh_.time().timeName(),
+    //     mesh_,
+    //     IOobject::NO_READ,
+    //     IOobject::AUTO_WRITE
+    // ),
+    //     mesh_,
+    //     dimensionedScalar("0", dimLength, 0),
+    //     "zeroGradient"
+    // ),
+
+
     limitHeatFlux_(false)
 {
     IOdictionary phaseChangeProperties
@@ -129,6 +190,18 @@ Foam::singleComponentPhaseChange::singleComponentPhaseChange
         phase1_,
         phase2_,
         turbModel_,
+        p_,
+        satProp_.ref(),
+        surf_,
+        phaseChangeProperties
+    );
+
+    Info << "creating Microlayer Model" << endl;
+    microModel_ =  microlayerModel::New
+    (
+        phase1_,
+        phase2_,
+        solid_,
         p_,
         satProp_.ref(),
         surf_,
@@ -187,6 +260,7 @@ Foam::singleComponentPhaseChange::singleComponentPhaseChange
         phaseChangeProperties
     );
 
+
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -240,8 +314,31 @@ void Foam::singleComponentPhaseChange::correct()
     {
         mModel.alphaSource(alphaSource_);
     }
+    ///////////////microlayer sources ///////////////////////
+    tmp<volScalarField> tMLEnergy = microModel_->energySourceML();
+    volScalarField& MLEnergy = tMLEnergy.ref();
 
+    for (auto& mModel: macroModels_)
+    {
+        mModel.energySourceML(MLEnergy);
+    }
 
+    psi1_.ref() = MLEnergy.internalField() / satProp_->L().internalField();
+    psi1_.correctBoundaryConditions();
+
+    massSourceML_ = microModel_->massSourceML(psi1_);
+
+    for (auto& mModel: macroModels_)
+    {
+        mModel.massSourceML(massSourceML_);
+    }
+
+    alphaSourceML_ = microModel_->alphaSourceML(psi1_);
+
+    for (auto& mModel: macroModels_)
+    {
+        mModel.alphaSourceML(alphaSourceML_);
+    }
 }
 
 void Foam::singleComponentPhaseChange::correctSatProperties

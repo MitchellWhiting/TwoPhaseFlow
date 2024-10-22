@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "phaseModels.C": "cpp",
+        "phaseModel.C": "cpp",
+        "phaseModelNew.C": "cpp",
+        "MultiComponentPhaseModel.C": "cpp",
+        "MovingPhaseModel.C": "cpp",
+        "PurePhaseModel.C": "cpp",
+        "StaticPhaseModel.C": "cpp"
+    }
+}

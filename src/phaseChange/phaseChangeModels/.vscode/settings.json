@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "ChenUtaka.C": "cpp",
+        "newMicrolayerModel.C": "cpp",
+        "microlayerModel.C": "cpp",
+        "Schrage.C": "cpp",
+        "implicitGrad.C": "cpp",
+        "massSourceTermModel.C": "cpp",
+        "hardtWondra.C": "cpp"
+    }
+}

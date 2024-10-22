@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "wallHeatFluxSolid.C": "cpp",
+        "superHeated.C": "cpp",
+        "interfaceRegion.C": "cpp",
+        "interfaceEnergyFluxes.C": "cpp"
+    }
+}

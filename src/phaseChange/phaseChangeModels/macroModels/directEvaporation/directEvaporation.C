@@ -176,3 +176,25 @@ void Foam::directEvaporation::alphaSource(volScalarField& rhoSource)
 {
 
 }
+///////////////////microlayer Sources///////////////////////
+void Foam::directEvaporation::hSourceML(volScalarField& hML)
+{
+
+}
+
+
+void Foam::directEvaporation::energySourceML(volScalarField& QML)
+{
+
+}
+
+
+void Foam::directEvaporation::massSourceML(volScalarField& rhoSource)
+{
+
+}
+
+void Foam::directEvaporation::alphaSourceML(volScalarField& rhoSource)
+{
+
+}

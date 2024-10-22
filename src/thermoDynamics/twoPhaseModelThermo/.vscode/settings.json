@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "twoPhaseMixtureThermo.C": "cpp",
+        "twoPhaseModelThermo.C": "cpp",
+        "phaseModel.C": "cpp"
+    }
+}

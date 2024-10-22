@@ -62,10 +62,6 @@ Foam::hardtWondraGasPhase::hardtWondraGasPhase
     ),
     cutoff_(modelDict().lookupOrDefault<scalar>("cutoff",1e-3)),
     spread_(modelDict().lookupOrDefault<scalar>("spread",3))
-
-
-
-
 {
 
 }
@@ -134,7 +130,8 @@ Foam::hardtWondraGasPhase::massSource( volScalarField& rhoSource)
         }
         else if (phase1_[celli] > 1.0-cutoff_)
         {
-            intPsiLiquid.value() += phase1_[celli]*psi[celli]*mesh.V()[celli];
+            intPsiLiquid.value() +=
+                phase1_[celli]*psi[celli]*mesh.V()[celli];
         }
     }
 
@@ -153,7 +150,6 @@ Foam::hardtWondraGasPhase::massSource( volScalarField& rhoSource)
     {
         Nv = intPsi0/intPsiVapor;
     }
-
 
     //- Set source terms in cells with alpha1 < cutoff or alpha1 > 1-cutoff
     forAll(mesh.C(),celli)

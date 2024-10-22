@@ -17,12 +17,10 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-
 #include "implicitGrad.H"
 #include "addToRunTimeSelectionTable.H"
 #include "tmp.H"
 #include "volFields.H"
-
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -66,6 +64,7 @@ Foam::implicitGrad::implicitGrad
 
 Foam::tmp<Foam::fvScalarMatrix> Foam::implicitGrad::TSource1()
 {
+
     surf_.reconstruct(false);
     const volScalarField& TSat = satModel_.TSat();
 
@@ -90,6 +89,7 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::implicitGrad::TSource1()
 
 Foam::tmp<Foam::fvScalarMatrix> Foam::implicitGrad::TSource2()
 {
+
     surf_.reconstruct(false);
     const volScalarField& TSat = satModel_.TSat();
 

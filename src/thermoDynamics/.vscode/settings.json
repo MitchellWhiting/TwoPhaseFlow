@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "fluidThermos.C": "cpp",
+        "MovingPhaseModel.C": "cpp",
+        "tabulatedSolidTransport.C": "cpp",
+        "tabulatedTransport.C": "cpp",
+        "twoPhaseMixtureThermo.C": "cpp",
+        "MultiComponentPhaseModel.C": "cpp",
+        "phaseModel.C": "cpp",
+        "phaseModels.C": "cpp",
+        "phaseModelNew.C": "cpp",
+        "PurePhaseModel.C": "cpp",
+        "StaticPhaseModel.C": "cpp",
+        "twoPhaseModelThermo.C": "cpp",
+        "solidThermos.C": "cpp",
+        "solidTabulatedThermo.C": "cpp"
+    }
+}

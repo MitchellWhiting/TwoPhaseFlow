@@ -165,6 +165,16 @@ public:
 
         virtual void alphaSource(volScalarField& rhoSource) = 0;
 
+        ///////////////////microlayer Source///////////////////////
+
+        virtual void hSourceML(volScalarField& hML) = 0;
+
+        virtual void energySourceML(volScalarField& QML) = 0;
+    
+        virtual void massSourceML(volScalarField& rhoSource) = 0;
+
+        virtual void alphaSourceML(volScalarField& rhoSource) = 0;
+
 
 };
 

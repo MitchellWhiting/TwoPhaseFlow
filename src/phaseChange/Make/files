@@ -17,6 +17,11 @@ phaseChangeModels/macroModels/macroModel.C
 phaseChangeModels/macroModels/macroModels.C
 phaseChangeModels/macroModels/directEvaporation/directEvaporation.C
 
+phaseChangeModels/microlayerModel/microlayerModel.C
+phaseChangeModels/microlayerModel/newMicrolayerModel.C
+phaseChangeModels/microlayerModel/ChenUtaka/ChenUtaka.C
+phaseChangeModels/microlayerModel/noMicrolayer/noMicrolayer.C
+
 phaseChangeModels/singleComponentPhaseChange/singleComponentPhaseChange.C
 
 saturationProperties/singleComponentSatProp/newSingleComponentSatProp.C
