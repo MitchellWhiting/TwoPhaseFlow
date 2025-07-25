@@ -18,7 +18,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 
-#include "ChenUtaka.H"
+#include "LanduaLevich.H"
 #include "addToRunTimeSelectionTable.H"
 #include "zeroGradientFvPatchFields.H"
 
@@ -30,17 +30,19 @@ License
 #include "fvPatchFieldMapper.H"
 #include "mappedPatchBase.H"
 
+#include "cubicEqn.H"
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 { 
-    defineTypeNameAndDebug(ChenUtaka, 0);
-    addToRunTimeSelectionTable(microlayerModel,ChenUtaka, components);
+    defineTypeNameAndDebug(LanduaLevich, 0);
+    addToRunTimeSelectionTable(microlayerModel,LanduaLevich, components);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::ChenUtaka::ChenUtaka
+Foam::LanduaLevich::LanduaLevich
 (
     const phaseModel& phase1,
     const phaseModel& phase2,
@@ -64,11 +66,15 @@ Foam::ChenUtaka::ChenUtaka
     ),
     evapCoeff_(modelDict().lookupOrDefault<scalar>("evapCoeff",1)),
     Rgas_(modelDict().lookupOrDefault<scalar>("Rgas",1)),
+    sigma_(modelDict().lookupOrDefault<scalar>("sigma",1)),
     fluidPatch_(modelDict().lookupOrDefault<string>("fluidPatch","fluid_to_solid")), //Only working for 1 patch at the moment
     solidPatch_(modelDict().lookupOrDefault<string>("solidPatch","solid_to_fluid")),
-    method_(modelDict().lookupOrDefault<string>("initialisationMethod","chenUtaka")), //Only working for 1 patch at the moment
-    gradient_(modelDict().lookupOrDefault<scalar>("gradient",1)),
-    coefficient_(modelDict().lookupOrDefault<scalar>("coefficient_",1)),
+    Jakob_(modelDict().lookupOrDefault<scalar>("Jakob",1)),
+    prevT_(modelDict().lookupOrDefault<scalar>("prevT",0)),
+    prevR_(modelDict().lookupOrDefault<scalar>("Rinit",0)),
+    prevRbase_(modelDict().lookupOrDefault<scalar>("RbaseInit",0)),
+    prevdRdt_(modelDict().lookupOrDefault<scalar>("prevdRdt",0)),
+    prevCell_(modelDict().lookupOrDefault<label>("prevCell",0)),
     origin_(modelDict().lookupOrDefault<vector>("origin",vector(0, 0, 0)))
 
 {
@@ -76,6 +82,7 @@ Foam::ChenUtaka::ChenUtaka
     {
         Rgas_.value() = modelDict().get<scalar>("Rgas");
     }
+
 }
 // * * * * * * * * * * * * * * Protected Access Member Functions  * * * * *  //
 
@@ -83,13 +90,8 @@ Foam::ChenUtaka::ChenUtaka
 
 
 // ************************************************************************* //
-// Foam::tmp<Foam::fvScalarMatrix> Foam::ChenUtaka::dmlInitial()
-// {
 
-// }
-
-
-Foam::tmp<Foam::fvScalarMatrix> Foam::ChenUtaka::hSourceML()
+Foam::tmp<Foam::fvScalarMatrix> Foam::LanduaLevich::hSourceML()
 {
     Info<< "I'm inside hSourceML"<< endl;
     //Fluid Patch
@@ -175,38 +177,7 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::ChenUtaka::hSourceML()
         if (phase1_[fluidCellI] >= 0.001 || dmlVal <= 1e-10)
             continue;
 
-        /*
-        const vector solidCellC =   Tsolid.mesh().C()[solidCellI];
-        const vector faceC = fluidPatch.faceCentres()[faceI];
-        scalar yDimSolid = Foam::mag(solidCellC - faceC);
-        // Info<< "yDimSolid  " << yDimSolid << endl;
-        scalar kdsolid = alphasolidMax.value()*CpsolidMax.value()/yDimSolid;
-        // Info<< "kdsolid  " << kdsolid << endl;
 
-        const vector fluidCellC =   mesh.C()[fluidCellI];
-        scalar yDimFluid = 2*Foam::mag(fluidCellC - faceC); 
-        // Info<< "yDimFluid  " << yDimFluid << endl;
-
-        // scalar kdfluid = kmax.value()/(dml_[fluidCellI]); 
-        scalar kdfluid =   1/((dml_[fluidCellI]/(kmax.value())) + Rint[fluidCellI]);
-
-        // scalar kdh = kdfluid/yDimFluid;
-        // Info<< " d/k " << (dml_[fluidCellI]/(kmax.value()))  <<endl;
-        // Info<< " Rint " << Rint[fluidCellI]  <<endl;
-
-        // sourceCoeff[solidCellI] = -(kdh.value()*kdsolid.value()*(1/CpsolidMax.value()))/(kdSum.value());
-        // source1[solidCellI] = -kdh.value()*TSat[fluidCellI]*((kdfluid.value())/((kdSum.value())) - 1);
-
-        // sourceCoeff[solidCellI] = (kdh.value())/((CpsolidMax.value()));
-        // source1[solidCellI] = TSat[fluidCellI]*kdh.value();
-        // scalar Twall = (kdsolid.value()*Tsolid[solidCellI]+kdfluid*TSat[fluidCellI])/(kdsolid.value()+kdfluid);
-        scalar Twall = (kdsolid*Tsolid[solidCellI]+kdfluid*TSat[fluidCellI])/(kdsolid + kdfluid);
-
-        // scalar Twall = Tsolid.boundaryField()[samplePatchi][faceI];
-        scalar qml =  kdfluid*(Twall - TSat[fluidCellI]);
-        sourceCoeff[solidCellI] =  qml/(yDimFluid*hsolid[solidCellI]);
-        */
-        ////////////////////////////////////////////////////////////////////////////////
         const vector& faceC = fluidFaceCentres[faceI];
         const vector& fluidCellC = mesh.C()[fluidCellI];
         const vector& solidCellC = solidFvMesh.C()[solidCellI];
@@ -226,14 +197,7 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::ChenUtaka::hSourceML()
 
     }
     
-    // reduce(TSourceML, sumOp<scalar>());
-
-    // tmp<volScalarField> energySource(TSource*(Twall-TSat));
-    // volScalarField& energySourceRef = energySource.ref();
-    // energySourceRef.ref() *= mag(surf_.normal().internalField())/TSat.mesh().V();
-
     sourceCoeff.correctBoundaryConditions();
-    // sourceCoeff *= 1/solidFvMesh.V();
 
     tmp<fvScalarMatrix> hSource(fvm::Sp(sourceCoeff, hsolid));
 
@@ -241,141 +205,79 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::ChenUtaka::hSourceML()
 
 }
 
-// AI Attempt:
-/*
-Foam::tmp<Foam::fvScalarMatrix> Foam::ChenUtaka::hSourceML()
-{
-    Info<< "I'm inside hSourceML"<< endl;
-
-    // Reconstruct surface
-    surf_.reconstruct(false);
-
-    const fvMesh& mesh = phase1_.mesh(); 
-    const label fluidPatchID = mesh.boundaryMesh().findPatchID(fluidPatch_);
-    const fvPatch& fluidPatch = mesh.boundary()[fluidPatchID];
-
-    const mappedPatchBase& mpp = refCast<const mappedPatchBase>(fluidPatch.patch());
-    const polyMesh& solidMesh = mpp.sampleMesh();
-    const fvMesh& solidFvMesh = refCast<const fvMesh>(solidMesh);
-    const label samplePatchi = mpp.samplePolyPatch().index();
-    const fvPatch& solidPatch = solidFvMesh.boundary()[samplePatchi];
-
-    // Fields
-    const volScalarField& TSat = satModel_.TSat(); 
-    const volScalarField& rho1 = phase1_.thermo().rho();
-    const volScalarField& rho2 = phase2_.thermo().rho();
-    const volScalarField& k1 = phase1_.kappa();
-
-    const dimensionedScalar Rgas("Rgas", dimGasConstant, Rgas_.value());
-    const dimensionedScalar rho1Max("rho1Max", rho1.dimensions(), gMax(rho1.internalField()));
-    const dimensionedScalar kmax("kFluidMax", k1.dimensions(), gMax(k1.internalField()));
-
-    const volScalarField& Tsolid = solid_.T(); 
-    const volScalarField& hsolid = solid_.he();  
-    const volScalarField& ksolid = solid_.kappa(); 
-    const volScalarField& Cpsolid = solid_.Cp(); 
-    const volScalarField& rhosolid = solid_.rho(); 
-    const volScalarField& alphasolid = solid_.alpha(); 
-
-    const dimensionedScalar ksolidMax("kSolidMax", ksolid.dimensions(), gMax(ksolid.internalField()));
-    const dimensionedScalar CpsolidMax("CpSolidMax", Cpsolid.dimensions(), gMax(Cpsolid.internalField()));
-    const dimensionedScalar rhosolidMax("rhosolidMax", rhosolid.dimensions(), gMax(rhosolid.internalField()));
-    const dimensionedScalar alphasolidMax("alphasolidMax", alphasolid.dimensions(), gMax(alphasolid.internalField()));
-
-    volScalarField Rint
-    (
-        (2-evapCoeff_)/(2*evapCoeff_)
-        *(pow(2*constant::mathematical::pi*Rgas,0.5))
-        *pow(TSat,1.5)/(pow(satModel_.L(),2)*rho2)
-    );
-
-    volScalarField sourceCoeff
-    (
-        IOobject
-        (
-            "sourceCoeff",
-            solidMesh.time().timeName(),
-            solidFvMesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        solidFvMesh,
-        dimensionedScalar("zero", dimensionSet(1,-3,-1,0,0,0,0), 0.0),
-        "zeroGradient"
-    );
-
-    // Interpolation of fluid values to patch
-    const labelList& fluidFaceCells = fluidPatch.faceCells();
-    const labelList& solidFaceCells = solidPatch.faceCells();
-
-    forAll(fluidPatch, faceI)
-    {
-        const label fluidCellI = fluidFaceCells[faceI];
-        const label solidCellI = solidFaceCells[faceI];
-
-        if (fluidCellI < 0 || solidCellI < 0) continue;
-
-        const scalar dmlVal = dml_[fluidCellI];
-
-        if (phase1_[fluidCellI] >= 0.001 || dmlVal <= 1e-10)
-            continue;
-
-        const vector solidCellC = solidFvMesh.C()[solidCellI];
-        const vector faceC = fluidPatch.faceCentres()[faceI];
-        const scalar yDimSolid = mag(solidCellC - faceC);
-        const scalar kdsolid = alphasolidMax.value()*CpsolidMax.value()/yDimSolid;
-
-        const vector fluidCellC = mesh.C()[fluidCellI];
-        const scalar yDimFluid = 2*mag(fluidCellC - faceC);
-        const scalar kdfluid = 1.0/((dmlVal / kmax.value()) + Rint[fluidCellI]);
-
-        const scalar Twall = (kdsolid*Tsolid[solidCellI] + kdfluid*TSat[fluidCellI])/(kdsolid + kdfluid);
-        const scalar qml = kdfluid * (Twall - TSat[fluidCellI]);
-
-        sourceCoeff[solidCellI] = qml / (yDimFluid * hsolid[solidCellI]);
-        
-    }
-
-    sourceCoeff.correctBoundaryConditions();
-    tmp<fvScalarMatrix> hSource(fvm::Sp(sourceCoeff, hsolid));
-
-    return hSource;
-}*/
-
-void Foam::ChenUtaka::initialiseML()
+void Foam::LanduaLevich::initialiseML()
 {   
-    if (method_ == "chenUtaka")
+    Info<< "I'm inside initialiseML"<< endl;
+
+    const label patchID = phase1_.mesh().boundaryMesh().findPatchID(fluidPatch_);
+    const polyPatch& cPatch = phase1_.mesh().boundaryMesh()[patchID];
+    const labelUList& faceCells = cPatch.faceCells();
+
+    //Fluid Fields
+    const volScalarField& rho1 = phase1_.thermo().rho();
+    const dimensionedScalar rho1Max ("rho1Max",rho1.dimensions(), gMax(rho1.internalField()));
+    const volScalarField& k1 = phase1_.kappa(); //Can change to kappaEff later (need alphat from turbulence model)
+    const dimensionedScalar kMax ("kFluidMax",k1.dimensions(), gMax(k1.internalField()));
+    const volScalarField& mu1 = phase1_.thermo().mu();
+    const dimensionedScalar mu1Max ("mu1Max",mu1.dimensions(), gMax(mu1.internalField()));
+    const volScalarField& Cp1 = phase1_.thermo().Cp();
+    const dimensionedScalar Cp1Max ("Cp1Max",Cp1.dimensions(), gMax(Cp1.internalField()));
+
+    const dimensionedScalar alphaDiff = kMax/(Cp1Max*rho1Max);
+
+    scalar maxR = 0.0;
+    scalar maxRCell = 0;
+    scalar maxdRdt = 0.0;
+    forAll(faceCells, cellI)
     {
-        Info<< "I'm inside initialiseML"<< endl;
+        scalar R = mag(phase1_.mesh().C()[cellI] - origin_);
 
-        const label patchID = phase1_.mesh().boundaryMesh().findPatchID(fluidPatch_);
-        const polyPatch& cPatch = phase1_.mesh().boundaryMesh()[patchID];
-        const labelUList& faceCells = cPatch.faceCells();
+        if (R <= prevR_ && phase1_[cellI] < 0.1)
+        {
+            scalar t = pow(R/(2 * Jakob_ * pow((3*alphaDiff.value()/constant::mathematical::pi),0.5)), 2);
+            scalar dRdt = pow((3*alphaDiff.value()/constant::mathematical::pi),0.5) * Jakob_ * pow(t,-0.5);
+            scalar d2Rdt2 = -0.5*pow((3*alphaDiff.value()/constant::mathematical::pi),0.5) * Jakob_ * pow(t,-1.5);
 
-        vector point (0, 0, 0);
-        scalar distance (0.0);
-        scalar dx (0.0);
-        scalar dy (0.0);
-        scalar dz (0.0);
+            if (R > maxR)
+            {
+                maxR = R;
+                maxRCell = cellI;
+                maxdRdt = dRdt;
+            }
 
-        
-        forAll(faceCells, cellI)
-        { //Add condition for dml>0 - v
+            Info << "\n[initialisedBubbleRadius] R = " << R
+            << ", dRdt = " << dRdt 
+            << ", d2Rdt2 = " << d2Rdt2 
+            << ", t = " << t << endl;
 
-            point = phase1_.mesh().C()[cellI];
-            dx =  pow(origin_[0] - point[0] , 2);
-            dy =  pow(origin_[1] - point[1] , 2);
-            dz =  pow(origin_[2] - point[2] , 2);
+            const scalar a = (rho1Max.value()/sigma_)*(pow(dRdt/R,2) - (d2Rdt2/(3*R))); 
+            const scalar b = -((rho1Max.value()*d2Rdt2)/(2*sigma_)) ;
+            const scalar c = 1/(R);
 
-            distance = pow(dx + dy + dz, 0.5);
+            Roots<3> roots(cubicEqn(a, b, c, -1).roots());
+            scalar x_bar = 0;
+            for (label i = 0; i < 3; ++i) 
+            {
+                scalar root = roots[i];
+                if (root > 0)
+                {
+                    x_bar = root;
+                    break;
+                }  
+            }
 
-            dml_[cellI] += gradient_*distance;
+            scalar Rm = 1/(3*a*pow(x_bar,2) + 2*b*x_bar + c); // dimensioned scalar could be more appropriate here
+            dml_[cellI] = 1.34*Rm*pow((mu1Max.value()*dRdt/sigma_),(2.0/3.0)); 
         }
-    }
 
+    }
+    prevR_ = maxR; 
+    prevRbase_ = maxR; 
+    prevdRdt_ = maxdRdt;
+    prevCell_ = maxRCell;
 }
 
-void Foam::ChenUtaka::updateML()
+void Foam::LanduaLevich::updateML()
 {       
     Info<< "I'm inside updateML"<< endl;
 
@@ -414,35 +316,86 @@ void Foam::ChenUtaka::updateML()
     const volScalarField& k1 = phase1_.kappa(); //Can change to kappaEff later (need alphat from turbulence model)
     const dimensionedScalar kmax ("kFluidMax",k1.dimensions(), gMax(k1.internalField()));
     const volScalarField& mu1 = phase1_.thermo().mu();
+    const dimensionedScalar mu1max ("mu1Max",mu1.dimensions(), gMax(mu1.internalField()));
 
     volScalarField Rint
     (
         (2-evapCoeff_)/(2*evapCoeff_)*(pow(2*constant::mathematical::pi*Rgas,0.5))*pow(TSat,1.5)/(pow(satModel_.L(),2)*rho2)
     );
 
+    forAll(fluidPatch, faceI)
+    {
+        const scalar fluidCellI = fluidFaceCells[faceI];
+        if (phase1_[fluidCellI] < 0.1)
+        {
+            scalar Rbase = mag(phase1_.mesh().C()[fluidCellI] - origin_);  
+            // Check if the radius is greater than the previous base radius
+            if (Rbase > prevRbase_)
+            {
+                // Check if the cell is the same as the previous one
+                label triggeredCell = fluidCellI;
+                if (triggeredCell != prevCell_)
+                {
+                    dimensionedScalar bubbleV (72*fvc::domainIntegrate(1.0 - phase1_)); //wedge of 5 degrees, 360/5 = 72
+                    Info << "\n bubbleV = " << bubbleV.value() << endl;
+                    scalar R = (pow((6.0 * bubbleV.value()) / (constant::mathematical::pi), 1.0 / 3.0))/2;
+                    scalar currentTime = mesh.time().timeOutputValue();
+                    scalar dt = currentTime - prevT_;
+                    scalar dRdt = (R - prevR_) / dt;
+                    scalar d2Rdt2 = (dRdt - prevdRdt_) / dt;
 
+                    Info << "\n[calculateBubbleRadius] R = " << R
+                        << ", dRdt = " << dRdt
+                        << ", d2Rdt2 = " << d2Rdt2 
+                        << ", dt = " << dt << endl;
+
+                    // update old rates for future timestep
+                    prevRbase_ = Rbase;
+                    prevR_ = R;
+                    prevT_ = currentTime;
+                    prevdRdt_ = dRdt;
+                    prevCell_ = triggeredCell;
+
+                    // Info << "updated old values" << endl;
+
+                    const scalar a = (rho1Max.value()/sigma_)*(pow(dRdt/R,2) - (d2Rdt2/(3*R)));   
+                    const scalar b = -((rho1Max.value()*d2Rdt2)/(2*sigma_)) ;
+                    const scalar c = 1/(R);
+
+                    Info << "coefficients a: " << a << "  : " << b << "  c: " << c << endl;
+
+                    // Info << "found coefficients" << endl;
+
+                    Roots<3> roots(cubicEqn(a, b, c, -1).roots());
+                    Info << "found roots" << roots << endl;
+                    scalar x_bar = 0;
+                    for (label i = 0; i < 3; ++i) 
+                    {
+                        scalar root = roots[i];
+                        if (root > 0)
+                        {
+                            x_bar = root;
+                            break;
+                        }  
+                    }
+                    Info << "found x_bar " << x_bar << endl;
+
+                    scalar Rm = 1/(3*a*pow(x_bar,2) + 2*b*x_bar + c); // dimensioned scalar could be more appropriate here
+                    Info << "found Rm " << Rm*1000 << " [mm] " << endl;
+
+                    dml_[fluidCellI] = 1.34*Rm*pow((mu1max.value()*dRdt/sigma_),(2.0/3.0)); 
+                    Info << "updated dml " << dml_[fluidCellI] << endl;
+                }
+                }
+            }
+        }
+    
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     volScalarField MSource(TSat*0.0/(Rint*satModel_.L()));
-
-    scalar xMax1(0.0); // Cell next to TPL
-    scalar xMin1(1.0);
-
-    scalar xMax2(0.0);
-    scalar xMin2(0.0);
-    scalar x1(0.0);
-    scalar x2(0.0);
-    scalar x3(0.0);
-    scalar x4(0.0);
-
-    scalar midpoint(0.0);
-
-    scalar yMax1(0.0); // dml of xMax1
-    scalar yMax2(0.0); // dml of xMax2
-
-    scalar yMin1(0.0);
-    scalar yMin2(0.0);
-
-    scalar dx1 (30e-6);
-    scalar dx2 (60e-6);
 
     forAll(fluidPatch, faceI)
     {
@@ -452,7 +405,7 @@ void Foam::ChenUtaka::updateML()
         //for linear extrapolation of microlayer
 
 
-        if (phase1_[fluidCellI] < 0.5)
+        if (phase1_[fluidCellI] < 0.1)
         {
             if (dml_[fluidCellI] >  1e-10)
             {
@@ -479,105 +432,17 @@ void Foam::ChenUtaka::updateML()
 
                 dml_[fluidCellI] = dml_[fluidCellI] - MSource[fluidCellI]*phase1_.mesh().time().deltaTValue()/rho1Max.value();
             }
-
             else
             {
+                // If dml is too small, set it to zero to avoid negative values
                 dml_[fluidCellI] = 0.0;
+                MSource[fluidCellI] = 0.0;
             }
-           
-            if (mesh.C()[fluidCellI].x() < xMin1)
-            {
-                xMin1 = mesh.C()[fluidCellI].x();
-                yMin1 = dml_[fluidCellI];
-            }
-
-            if ( mesh.C()[fluidCellI].x() > xMax1)
-            {
-                xMax1 = mesh.C()[fluidCellI].x();
-                yMax1 = dml_[fluidCellI];
-            }
-
-            midpoint = (xMax1 - xMin1)/2;
-
-
-            // if (mesh.C()[fluidCellI].x() < xMin2 and mesh.C()[fluidCellI].x() > xMin1)
-            // {
-            //     xMin2 = mesh.C()[fluidCellI].x();
-            //     yMin2 = dml_[fluidCellI];
-            // }
-
-            // if (dml_[fluidCellI] > yMax1)
-            // xMin1 = xMin2;
-            // yMin1 = yMin2;
-
-            // xMin2 = xMax2;
-            // yMin2 = yMax2;
-
-            // xMax2 = xMax1;
-            // yMax2 = yMax1;
-
-
-
-
-            // else if (mesh.C()[fluidCellI].x() > xMax1 - dx2 && mesh.C()[fluidCellI].x() <= xMax1 - dx1)
-            // {
-            //     xMin1 = max(mesh.C()[fluidCellI].x(),0);
-            //     yMin1 = max(dml_[fluidCellI],0);
-            // }
-
-            // // Info << "xMin2 : " << xMin2 << endl;
-            // Info << "xMin1 : " << xMin1 << endl;
-
-
-        }
-
-            
-    }
-
-    Info << "Min" << xMin1 << endl;
-    Info << "Mid" << midpoint << endl;
-    Info << "Max" << xMax1 << endl;
-
-    forAll(fluidPatch, faceI)
-    {
-        const scalar fluidCellI = fluidFaceCells[faceI];
-
-        // // if (mesh.C()[fluidCellI].x() > xMax1 - dx2 && mesh.C()[fluidCellI].x() <= xMax1 - dx1)
-        // if (mesh.C()[fluidCellI].x() > x1 && mesh.C()[fluidCellI].x() <= xMax1 - midpoint)
-        // {
-        //     x1 = mesh.C()[fluidCellI].x();
-        //     y1 = max(dml_[fluidCellI],0);
-        // }
-        // Info << "xMin1 : " << xMin1 << endl;
-
-
-        if (phase1_[fluidCellI] > 0.5)
-        {
-            scalar point = phase1_.mesh().C()[fluidCellI].x();
-
-            // dml_[fluidCellI] = yMax1 + (yMax1 - yMax2)*(point - xMax1)/(xMax1 - xMax2);
-            // Info<< "xMax1 - xMin1 : "<< xMax1 - xMin1 << endl;
-            // dml_[fluidCellI] = max(yMax1 + (yMax1 - yMin1)*(point - xMax1)/(xMax1 - xMin1), yMax1);
-            // dml_[fluidCellI] = yMin2 + (yMin1 - yMin2)*(point - xMin2)/(xMin1 - xMin2);
-
-            scalar distance = point - xMax1;
-            // Info << "distance : " << distance << endl;
-
-            dml_[fluidCellI] = gradient_*distance + yMax1;
-        }
-        // Info << "xMin1 : " << xMin1 << endl;
-
-        if (method_ == "cooperLloyd" && phase1_[fluidCellI] >= 0.5)
-        {
-            dml_[fluidCellI] = coefficient_*pow((mu1[fluidCellI]/rho1[fluidCellI])*phase1_.mesh().time().value() ,0.5);  //
         }
     }
-
-
-    
 }
 
-Foam::tmp<Foam::volScalarField> Foam::ChenUtaka::energySourceML()
+Foam::tmp<Foam::volScalarField> Foam::LanduaLevich::energySourceML()
 {
     Info<< "I'm inside energySourceML"<< endl;
     //Fluid Patch
@@ -652,54 +517,6 @@ Foam::tmp<Foam::volScalarField> Foam::ChenUtaka::energySourceML()
     
     volScalarField MSource(TSat*0.0/(Rint*satModel_.L()));    
 
-    // const dimensionedVector solidCellC0 = Tsolid.mesh().C()[solidFaceCells[0]];
-    // const dimensionedVector solidCellC1 = Tsolid.mesh().C()[solidFaceCells[1]];
-    // // const dimensionedVector faceC = fluidPatch.faceCentres()[0];    
-    // dimensionedScalar d_solid("dSolid", dimLength, 0.5*Foam::mag(solidCellC0 - solidCellC1).value());
-    // Info<< "d_solid"<<d_solid.dimensions() <<endl;
-    // Info<< "alphasolidMax"<<alphasolidMax.dimensions() <<alphasolidMax.value()<< endl;
-
-    // volScalarField kdsolid (alphasolidMax.value()*ksolid/d_solid);
-    // volScalarField kdsolid
-    // (
-    //     IOobject
-    //     (
-    //         "kdsolid",
-    //         solidMesh.time().timeName(),
-    //         solidMesh,
-    //         IOobject::NO_READ,
-    //         IOobject::NO_WRITE
-    //     ),
-    //     solidMesh,
-    //     dimensionedScalar("0", dimensionSet(1,0,-3,-1,0,0,0), alphasolidMax.value()*ksolidMax.value()/d_solid.value()),
-    //     "zeroGradient"
-    // );
-
-    // Info<< "Made fields"<< endl;
-    // Pout << "Hello from processor " << Pstream::myProcNo() << "! I am working on "<< fluidPatch.size() << " cells" << endl;
-
-    // forAll(fluidPatch, faceI)
-    // {
-    //     const scalar fluidCellI = fluidFaceCells[faceI];
-
-    //     if (phase1_[fluidCellI] < 0.001 and dml_[fluidCellI] > 1e-10)
-    //     {
-    //         const dimensionedVector faceC = fluidPatch.faceCentres()[faceI];
-    //         const dimensionedVector fluidCellC = mesh.C()[fluidCellI];
-    //         yDimFluid.value() = 2*Foam::mag(fluidCellC - faceC).value(); 
-    //         kdfluid[fluidCellI] = kmax.value()/(dml_[fluidCellI]);
-    //         kdh[fluidCellI] = kdfluid[fluidCellI]/yDimFluid.value();
-    //     }
-    // } 
-    // Info<< "minkdfluid " <<gMin(kdfluid.internalField())<< endl;
-    // Info<< "minkdh " <<gMin(kdh.internalField())<< endl;
-    // Info<< "minkdsolid " <<gMin(kdsolid.internalField())<< endl;
-    // Info<< "minsum " <<gMin(kdsolid.internalField()) + gMin(kdfluid.internalField())<< endl;
-
-    // volScalarField Twall((kdsolid*Tsolid + kdfluid*TSat)/(kdsolid + kdfluid));
-    // Info<< "minTwall " << gMin(Twall.internalField()) << endl;
-    // sourceCoeffRef =  kdh*(Twall - TSat);
-
 
     forAll(fluidPatch, faceI)
     {
@@ -763,7 +580,7 @@ Foam::tmp<Foam::volScalarField> Foam::ChenUtaka::energySourceML()
 
 
 Foam::tmp<Foam::volScalarField> 
-Foam::ChenUtaka::massSourceML( volScalarField& rhoSource)
+Foam::LanduaLevich::massSourceML( volScalarField& rhoSource)
 {
     Info<< "I'm inside massSourceML"<< endl;
     
@@ -851,7 +668,7 @@ Foam::ChenUtaka::massSourceML( volScalarField& rhoSource)
 
 
 Foam::tmp<Foam::volScalarField>
-Foam::ChenUtaka::alphaSourceML( volScalarField& rhoSource)
+Foam::LanduaLevich::alphaSourceML( volScalarField& rhoSource)
 {
     Info<< "I'm inside alphaSourceML"<< endl;
 

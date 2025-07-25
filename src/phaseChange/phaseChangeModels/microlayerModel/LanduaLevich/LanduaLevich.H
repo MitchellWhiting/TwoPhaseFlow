@@ -16,23 +16,21 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::ChenUtaka
+    Foam::LanduaLevich
 
 Description
-    interface heat resistance model based on the ChenUtaka equation
+    interface heat resistance model based on the LanduaLevich equation
 
 SourceFiles
-    ChenUtaka.C
+    LanduaLevich.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef ChenUtaka_H
-#define ChenUtaka_H
+#ifndef LanduaLevich_H
+#define LanduaLevich_H
 
 #include "typeInfo.H"
 #include "microlayerModel.H"
-#include "bubbleGrowthRate.H"
-
 #include "volFields.H"
 #include "dimensionedScalar.H"
 #include "scalar.H"
@@ -54,10 +52,10 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                Class ChenUtaka Declaration
+                Class LanduaLevich Declaration
 \*---------------------------------------------------------------------------*/
 
-class ChenUtaka : public microlayerModel
+class LanduaLevich : public microlayerModel
 {
 
 private:
@@ -66,31 +64,35 @@ private:
 
     scalar evapCoeff_;
     dimensionedScalar Rgas_;
+    scalar sigma_;
     string fluidPatch_;
     string solidPatch_;
-    string method_;
-    scalar gradient_;
-    scalar coefficient_;
+    scalar Jakob_;
+    scalar prevT_;
+    scalar prevR_;
+    scalar prevRbase_;
+    scalar prevdRdt_;
+    label prevCell_;
     vector origin_;
 
 
     // Private Member Functions
 
         //- Disallow copy construct
-        ChenUtaka(const ChenUtaka&);
+        LanduaLevich(const LanduaLevich&);
 
         //- Disallow default bitwise assignment
-        void operator=(const ChenUtaka&);
+        void operator=(const LanduaLevich&);
 
 public:
 
     //- Runtime type information
-    TypeName("ChenUtaka");
+    TypeName("LanduaLevich");
 
     // Constructors
 
         //- Construct from components
-        ChenUtaka
+        LanduaLevich
         (
             const phaseModel& phase1,
             const phaseModel& phase2,
@@ -102,7 +104,7 @@ public:
         );
 
     //- Destructor
-    virtual ~ChenUtaka()
+    virtual ~LanduaLevich()
     {}
 
     // Member Functions

@@ -1,5 +1,4 @@
 /*---------------------------------------------------------------------------*\
-            Copyright (c) 2017-2019, German Aerospace Center (DLR)
 -------------------------------------------------------------------------------
 License
     This file is part of the VoFLibrary source code library, which is an
@@ -16,111 +15,93 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::ChenUtaka
+    Foam:: bubbleGrowthRate
 
 Description
-    interface heat resistance model based on the ChenUtaka equation
-
+    Computes and outputs bubble growth rate and acceleration along a patch for
+    calculations of microalyer thickenss
 SourceFiles
-    ChenUtaka.C
+    bubbleGrowthRate.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef ChenUtaka_H
-#define ChenUtaka_H
-
-#include "typeInfo.H"
-#include "microlayerModel.H"
-#include "bubbleGrowthRate.H"
+#ifndef bubbleGrowthRate_H
+#define bubbleGrowthRate_H
 
 #include "volFields.H"
-#include "dimensionedScalar.H"
-#include "scalar.H"
-
-#include "autoPtr.H"
-
-#include "fvScalarMatrix.H"
-#include "fvm.H"
-
-#include "reconstructionSchemes.H"
+#include "surfaceFields.H"
+#include "Time.H"
+#include "fvMesh.H"
+#include "IOobject.H"
+#include "runTimeSelectionTables.H"
+#include "phaseModel.H"
 #include "singleComponentSatProp.H"
-
-#include "mixedFvPatchFields.H"
+#include "surfaceFields.H"
+#include "IOdictionary.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
 /*---------------------------------------------------------------------------*\
                 Class ChenUtaka Declaration
 \*---------------------------------------------------------------------------*/
+    class BubbleGrowthRate : public dictionary
+    {
+    private:
+        scalar prevTime_;
+        scalar prevRad_;
+        scalar prevRate_;
+        scalar currTime_;
 
-class ChenUtaka : public microlayerModel
-{
+        // Private Member Functions
 
-private:
+            //- Disallow copy construct
+            BubbleGrowthRate(const BubbleGrowthRate&);
 
-    // volScalarField dml_;
+            //- Disallow default bitwise assignment
+            void operator=(const BubbleGrowthRate&);
 
-    scalar evapCoeff_;
-    dimensionedScalar Rgas_;
-    string fluidPatch_;
-    string solidPatch_;
-    string method_;
-    scalar gradient_;
-    scalar coefficient_;
-    vector origin_;
+    public:
+        //- Runtime type information
+        TypeName("BubbleGrowthRate");
 
-
-    // Private Member Functions
-
-        //- Disallow copy construct
-        ChenUtaka(const ChenUtaka&);
-
-        //- Disallow default bitwise assignment
-        void operator=(const ChenUtaka&);
-
-public:
-
-    //- Runtime type information
-    TypeName("ChenUtaka");
-
-    // Constructors
-
+        // Constructors
         //- Construct from components
-        ChenUtaka
+        BubbleGrowthRate
         (
+            const string& fluidPatch,
             const phaseModel& phase1,
-            const phaseModel& phase2,
-            const solidThermo& solid,
-            const volScalarField& p,
-            singleComponentSatProp& satModel,
-            reconstructionSchemes& surf,
+            const Time& runTime,
+            const scalar& startTime,
+            const scalar& startRad,
+            const scalar& startRate,
             const dictionary& dict
         );
 
-    //- Destructor
-    virtual ~ChenUtaka()
-    {}
+        //- Destructor
+        virtual ~BubbleGrowthRate()
+        {}
 
-    // Member Functions
-        virtual tmp<fvScalarMatrix> hSourceML();
+        // Member Functions
 
-        virtual void initialiseML();
+        virtual scalar computeBubbleGrowthRate
+        (    
+            const fvMesh& mesh,
+            const volScalarField& alpha,
+            const word& patchName,
+            const point& bubbleCenter,
+            scalar& R,
+            scalar& dRdt,
+            scalar& d2Rdt2,
+            label& triggeredCell
+        );
 
-        virtual void updateML();
-        
-        virtual tmp<volScalarField> energySourceML();
-        
-        virtual tmp<volScalarField> massSourceML(volScalarField& rhoSource);
-
-        virtual tmp<volScalarField> alphaSourceML(volScalarField& rhoSource);
- 
-};
+        virtual scalar computeBubbleGrowthAcceleration() = 0;
 
 
+    };
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
@@ -128,5 +109,4 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #endif
-
 // ************************************************************************* //

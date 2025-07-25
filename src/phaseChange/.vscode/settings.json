@@ -29,6 +29,7 @@
         "explicitInterfaceDiffFlux.C": "cpp",
         "hardtWondraGasPhase.C": "cpp",
         "selectedGradExplicit.C": "cpp",
-        "noMicrolayer.C": "cpp"
+        "noMicrolayer.C": "cpp",
+        "LanduaLevich.C": "cpp"
     }
 }

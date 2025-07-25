@@ -59,6 +59,24 @@
         "surfaceTensionModelNew.C": "cpp",
         "wallHeatFluxSolid.C": "cpp",
         "solidTabulatedThermo.C": "cpp",
-        "interfaceRegion.C": "cpp"
-    }
+        "interfaceRegion.C": "cpp",
+        "noMicrolayer.C": "cpp",
+        "LanduaLevich.C": "cpp",
+        "zoneDistribute.C": "cpp",
+        "bubbleRate.C": "cpp",
+        "markInterfaceRegion.C": "cpp",
+        "bubbleGrowthRate.C": "cpp",
+        "newEnergySourceTermModel.C": "cpp",
+        "calculateBubbleRadius.C": "cpp",
+        "GeneratedCode1txt.C": "cpp",
+        "forLoop.C": "cpp",
+        "testMappedPatchSource.C": "cpp",
+        "surfaceTensionForceModels.C": "cpp",
+        "cutCell.C": "cpp",
+        "limits": "cpp",
+        "cmath": "cpp"
+    },
+    "editor.acceptSuggestionOnEnter": "off",
+    "editor.inlineSuggest.edits.showCollapsed": true,
+    "editor.inlineSuggest.experimental.triggerCommandOnProviderChange": false
 }
