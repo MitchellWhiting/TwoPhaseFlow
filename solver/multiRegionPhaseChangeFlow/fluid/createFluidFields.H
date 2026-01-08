@@ -414,6 +414,7 @@ forAll(fluidRegions, i)
         new singleComponentPhaseChange
         (
             thermoFluid[i],
+            thermos[0], 
             thermoFluid[i].p(),
             turbulenceFluid[i],
             advectionSchemesFluid[i].surf()
