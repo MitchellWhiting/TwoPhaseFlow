@@ -1,0 +1,102 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "../simSetup"
+
+actions
+(
+    
+    {
+        name    fluidCellSet;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.0 $negHeight_CAV -1) ($Width_CAV $HeightF 1);
+    }
+    {
+        name    fluidCellSet;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     ($Width_CAV 0.0 -1) ($Width $HeightF 1);
+    }
+    // {
+    //     name    fluidCellSet;
+    //     type    cellSet;
+    //     action  add;
+    //     source  rotatedBoxToCell;
+    //     origin  (0 #calc "$Height_CAV-0.00005" -1);
+    //     i       ($Width_CAV 0.00005 0);
+    //     j       (#calc "-$Width_CAV" 0.00005 0);
+    //     k       (0 0 10);
+    // }
+
+    
+    {
+        name    fluid;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     fluidCellSet;
+    }
+    //ITO HEATER
+    {
+        name    heaterCellSet;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0 #calc "-$meshSize" -1)(1 0 1); 
+    }
+    {
+        name    heater;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     heaterCellSet;
+    }
+
+
+    // solid
+
+    {
+        name    solidCellSet;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        set     fluidCellSet;
+    }
+    {
+        name    solidCellSet;
+        type    cellSet;
+        action  add;
+        source  cellToCell;
+        set     heaterCellSet;
+    }
+    {
+        name solidCellSet;
+        type cellSet;
+        action invert;
+    }
+    {
+        name    solid;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     solidCellSet;
+    }    
+);
+
+// ************************************************************************* //

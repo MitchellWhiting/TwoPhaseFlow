@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "dynamicmeshdict": "c",
+        "controldict": "c",
+        "phasechangeproperties": "c",
+        "fvoptions": "c"
+    }
+}
