@@ -1,0 +1,37 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1606+                                |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+mm 1e-3;
+um 1e-6;
+Rb0 #calc "50*$um"; // Initial bubble radius
+
+/* mesh */
+Width #calc "5*$mm"; // width of domain    10um
+HeightF #calc "6*$mm"; // height of fluid domain 5um
+HeightS #calc "0.25*$mm"; // height of solid domain
+ThickW #calc "0.32745707181*$mm"; //thickness of wedge  Width*tan(2.5)
+
+meshSize #calc "10*$um"; 
+Height_CAV #calc "0*$um";   
+negHeight_CAV #calc "-$Height_CAV";
+Width_CAV #calc "100*$um"; 
+
+//Origin #calc "$Rb0*cos(85*3.14159265359/180)-$Height_CAV"; //bubble origin
+Origin #calc "0-$Height_CAV";
+
+
+nx #calc "ceil($Width/$meshSize)"; // total number of mesh elements along x
+ny #calc "ceil(($HeightF+$HeightS)/$meshSize)"; // total number of mesh elements along z

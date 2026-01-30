@@ -1,0 +1,104 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2106                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      setExprFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+expressions
+(
+    T
+    {
+        field       T;
+        dimensions  [0 0 0 1 0 0 0];
+
+        constants
+        {
+        }
+
+        variables
+        (
+            "Twall = 382.15"
+            "delta = 0.000624415"
+            "dT = 9"
+        );
+
+        condition
+        #{
+            // above the wall
+		    ((pos().y()) >= 0) && ((pos().y()) <= delta)
+        #};
+
+        expression
+        #{
+            Twall - (dT/delta)*(pos().y())
+        #};
+    }
+
+    T.water
+    {
+        field       T.water;
+        dimensions  [0 0 0 1 0 0 0];
+
+        constants
+        {
+        }
+
+        variables
+        (
+            "Twall = 382.15"
+            "delta = 0.000624415"
+            "dT = 9"
+        );
+
+        condition
+        #{
+            // above the wall
+		    ((pos().y()) >= 0) && ((pos().y()) <= delta)
+        #};
+
+        expression
+        #{
+            Twall - (dT/delta)*(pos().y())
+        #};
+    }
+
+    T.air
+    {
+        field       T.air;
+        dimensions  [0 0 0 1 0 0 0];
+
+        constants
+        {
+        }
+
+        variables
+        (
+            "Tsat = 373.15"
+        );
+
+        condition
+        #{
+            // above the wall
+		    ((pos().y()) >= 0) && ((pos().y()) <= delta)
+        #};
+
+        expression
+        #{
+            Tsat
+        #};
+    }
+
+);
+
+// ************************************************************************* //
+

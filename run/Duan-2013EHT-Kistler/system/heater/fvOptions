@@ -1,0 +1,57 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2106                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+heatingPower
+{
+    type            scalarCodedSource;
+    selectionMode   all;
+
+    fields          (h);
+    name            sourceTime;
+
+    codeCorrect
+        #{
+            
+        #};
+
+    codeConstrain
+        #{
+
+        #};
+
+    codeAddSup
+    #{
+        const scalarField& V = mesh_.V();
+        scalarField& heSource = eqn.source();
+        const scalar cell_thickness = 10e-6;
+
+        // Retrieve the x component of the cell centres
+        const scalarField& cellx = mesh_.C().component(0);
+        const scalar heatFlux = 28.7e03; 
+        const scalar Heater_thickness = 0.7e-06;
+       
+        // Apply the source
+        forAll(cellx, i)
+        {
+            heSource[i] -= heatFlux*V[i]/(cell_thickness); 
+        }
+
+        // heSource -= heatFlux*V/(cell_thickness); 
+        
+    #};
+}
+
+
+// ************************************************************************* //

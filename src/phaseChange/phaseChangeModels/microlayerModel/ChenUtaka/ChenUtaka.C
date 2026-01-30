@@ -359,8 +359,9 @@ void Foam::ChenUtaka::initialiseML()
         scalar dz (0.0);
 
         
-        forAll(faceCells, cellI)
+        forAll(faceCells, i)
         { //Add condition for dml>0 - v
+            const label cellI = faceCells[i];
 
             point = phase1_.mesh().C()[cellI];
             dx =  pow(origin_[0] - point[0] , 2);

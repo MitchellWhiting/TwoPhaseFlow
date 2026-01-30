@@ -1,0 +1,68 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "../../simSetup"
+
+energySourceTermModel implicitGrad;
+
+implicitGradCoeffs
+{
+}
+
+SchrageCoeffs
+{
+    R 461.4;
+}
+
+selectedGradExplicitCoeffs
+{
+}
+
+microlayerModel ChenUtakaParallelR1;
+
+ChenUtakaCoeffs
+{
+    evapCoeff 1;
+    Rgas  461.52;
+    fluidPatch "fluid_to_heater";
+    solidPatch "heater_to_fluid";
+    initialisationMethod "chenUtaka";  //cooperLloyd chenUtaka
+    gradient 4.46e-3;
+    coefficient_ 1;                     //coefficient for cooperLloyd model, ignored for chenUtaka
+    origin (0 0 0);
+    debug true; //true; false;
+}
+
+massSourceTermModel hardtWondra;
+
+hardtWondraCoeffs
+{
+}
+
+
+satProperties
+{
+    singleComponentSatProp function;
+    Tmin 100;
+    Tmax 500;
+    pSat constant 101325;
+    TSat constant 373.15;
+    L constant 2.26e6;
+
+}
+
+
+// ************************************************************************* //

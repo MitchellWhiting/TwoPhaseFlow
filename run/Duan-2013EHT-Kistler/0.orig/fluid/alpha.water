@@ -1,0 +1,67 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      alpha.water;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0 0 0];
+
+internalField   uniform 1;
+
+boundaryField
+{
+
+  top
+  {
+      type            zeroGradient;
+  }
+
+  fluid_to_heater
+  {
+      //  type            dynamicKistlerAlphaContactAngle;
+      //  theta0          32;
+      //  thetaA          15;
+      //  thetaR          32; 
+      //  value           uniform;
+      //  slipLength      1e-9;     
+
+      type            compdynamicKistlerAlphaContactAngle;
+      theta0          32;
+      thetaA          32;
+      thetaR          15; 
+      muFieldName     thermo:mu.water;
+      value           uniform ;
+      limit           zeroGradient;
+  }
+  
+  side
+  {
+      type            zeroGradient;
+      
+  }
+  front
+  {
+    type wedge;
+  }
+  back
+  {
+    type wedge;
+  }
+
+  axis
+  {
+    type empty;
+  }
+}
+
+// ************************************************************************* //
