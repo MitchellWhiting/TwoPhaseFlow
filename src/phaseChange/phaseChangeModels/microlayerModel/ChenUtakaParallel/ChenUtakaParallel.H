@@ -16,18 +16,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::ChenUtakaParallelR1
+    Foam::ChenUtakaParallel
 
 Description
-    interface heat resistance model based on the ChenUtakaParallelR1 equation
+    interface heat resistance model based on the ChenUtakaParallel equation
 
 SourceFiles
-    ChenUtakaParallelR1.C
+    ChenUtakaParallel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef ChenUtakaParallelR1_H
-#define ChenUtakaParallelR1_H
+#ifndef ChenUtakaParallel_H
+#define ChenUtakaParallel_H
 
 #include "typeInfo.H"
 #include "microlayerModel.H"
@@ -46,6 +46,7 @@ SourceFiles
 #include "singleComponentSatProp.H"
 
 #include "mixedFvPatchFields.H"
+#include "mappedPatchBase.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -54,10 +55,10 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                Class ChenUtakaParallelR1 Declaration
+                Class ChenUtakaParallel Declaration
 \*---------------------------------------------------------------------------*/
 
-class ChenUtakaParallelR1 : public microlayerModel
+class ChenUtakaParallel : public microlayerModel
 {
 
 private:
@@ -66,7 +67,7 @@ private:
     
     // Stored Mass Source Term (kg/m3/s)
     volScalarField MSource_;
-    dictionary ChenUtakaCoeffs_;
+
     scalar evapCoeff_;
     dimensionedScalar Rgas_;
     string fluidPatch_;
@@ -77,27 +78,34 @@ private:
     vector origin_;
     bool debug_;
 
+    // MappedPatchBase for data exchange
+    autoPtr<mappedPatchBase> mapper_;
+    bool mapperInitialized_;
+    label fluidPatchSize_; // For AMR detection
 
     // Private Member Functions
         template <typename T>
         void distributeField(const labelList& neiProcs,Field<T>& field);
         
         labelList getNeibourProcs(const boolList& nextToInterface);
+
         //- Disallow copy construct
-        ChenUtakaParallelR1(const ChenUtakaParallelR1&);
+        ChenUtakaParallel(const ChenUtakaParallel&);
 
         //- Disallow default bitwise assignment
-        void operator=(const ChenUtakaParallelR1&);
+        void operator=(const ChenUtakaParallel&);
+        
+        void updateMapper();
 
 public:
 
     //- Runtime type information
-    TypeName("ChenUtakaParallelR1");
+    TypeName("ChenUtakaParallel");
 
     // Constructors
 
         //- Construct from components
-        ChenUtakaParallelR1
+        ChenUtakaParallel
         (
             const phaseModel& phase1,
             const phaseModel& phase2,
@@ -109,8 +117,7 @@ public:
         );
 
     //- Destructor
-    virtual ~ChenUtakaParallelR1()
-    {}
+    virtual ~ChenUtakaParallel();
 
     // Member Functions
         virtual tmp<fvScalarMatrix> hSourceML();
