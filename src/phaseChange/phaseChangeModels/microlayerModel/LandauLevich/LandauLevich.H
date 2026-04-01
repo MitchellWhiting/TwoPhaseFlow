@@ -16,18 +16,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::LanduaLevich
+    Foam::LandauLevich
 
 Description
-    interface heat resistance model based on the LanduaLevich equation
+    interface heat resistance model based on the LandauLevich equation
 
 SourceFiles
-    LanduaLevich.C
+    LandauLevich.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef LanduaLevich_H
-#define LanduaLevich_H
+#ifndef LandauLevich_H
+#define LandauLevich_H
 
 #include "typeInfo.H"
 #include "microlayerModel.H"
@@ -52,10 +52,10 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                Class LanduaLevich Declaration
+                Class LandauLevich Declaration
 \*---------------------------------------------------------------------------*/
 
-class LanduaLevich : public microlayerModel
+class LandauLevich : public microlayerModel
 {
 
 private:
@@ -79,20 +79,20 @@ private:
     // Private Member Functions
 
         //- Disallow copy construct
-        LanduaLevich(const LanduaLevich&);
+        LandauLevich(const LandauLevich&);
 
         //- Disallow default bitwise assignment
-        void operator=(const LanduaLevich&);
+        void operator=(const LandauLevich&);
 
 public:
 
     //- Runtime type information
-    TypeName("LanduaLevich");
+    TypeName("LandauLevich");
 
     // Constructors
 
         //- Construct from components
-        LanduaLevich
+        LandauLevich
         (
             const phaseModel& phase1,
             const phaseModel& phase2,
@@ -104,7 +104,7 @@ public:
         );
 
     //- Destructor
-    virtual ~LanduaLevich()
+    virtual ~LandauLevich()
     {}
 
     // Member Functions

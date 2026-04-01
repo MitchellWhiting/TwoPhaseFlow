@@ -22,6 +22,7 @@ phaseChangeModels/microlayerModel/newMicrolayerModel.C
 phaseChangeModels/microlayerModel/ChenUtaka/ChenUtaka.C
 phaseChangeModels/microlayerModel/ChenUtakaParallel/ChenUtakaParallel.C
 phaseChangeModels/microlayerModel/LanduaLevich/LanduaLevich.C
+phaseChangeModels/microlayerModel/LandauLevichParallel/LandauLevichParallel.C
 phaseChangeModels/microlayerModel/noMicrolayer/noMicrolayer.C
 
 phaseChangeModels/singleComponentPhaseChange/singleComponentPhaseChange.C
