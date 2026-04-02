@@ -18,7 +18,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 
-#include "LanduaLevich.H"
+#include "LandauLevich.H"
 #include "addToRunTimeSelectionTable.H"
 #include "zeroGradientFvPatchFields.H"
 
@@ -36,13 +36,13 @@ License
 
 namespace Foam
 { 
-    defineTypeNameAndDebug(LanduaLevich, 0);
-    addToRunTimeSelectionTable(microlayerModel,LanduaLevich, components);
+    defineTypeNameAndDebug(LandauLevich, 0);
+    addToRunTimeSelectionTable(microlayerModel,LandauLevich, components);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::LanduaLevich::LanduaLevich
+Foam::LandauLevich::LandauLevich
 (
     const phaseModel& phase1,
     const phaseModel& phase2,
@@ -91,7 +91,7 @@ Foam::LanduaLevich::LanduaLevich
 
 // ************************************************************************* //
 
-Foam::tmp<Foam::fvScalarMatrix> Foam::LanduaLevich::hSourceML()
+Foam::tmp<Foam::fvScalarMatrix> Foam::LandauLevich::hSourceML()
 {
     Info<< "I'm inside hSourceML"<< endl;
     //Fluid Patch
@@ -205,7 +205,7 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::LanduaLevich::hSourceML()
 
 }
 
-void Foam::LanduaLevich::initialiseML()
+void Foam::LandauLevich::initialiseML()
 {   
     Info<< "I'm inside initialiseML"<< endl;
 
@@ -277,7 +277,7 @@ void Foam::LanduaLevich::initialiseML()
     prevCell_ = maxRCell;
 }
 
-void Foam::LanduaLevich::updateML()
+void Foam::LandauLevich::updateML()
 {       
     Info<< "I'm inside updateML"<< endl;
 
@@ -442,7 +442,7 @@ void Foam::LanduaLevich::updateML()
     }
 }
 
-Foam::tmp<Foam::volScalarField> Foam::LanduaLevich::energySourceML()
+Foam::tmp<Foam::volScalarField> Foam::LandauLevich::energySourceML()
 {
     Info<< "I'm inside energySourceML"<< endl;
     //Fluid Patch
@@ -580,7 +580,7 @@ Foam::tmp<Foam::volScalarField> Foam::LanduaLevich::energySourceML()
 
 
 Foam::tmp<Foam::volScalarField> 
-Foam::LanduaLevich::massSourceML( volScalarField& rhoSource)
+Foam::LandauLevich::massSourceML( volScalarField& rhoSource)
 {
     Info<< "I'm inside massSourceML"<< endl;
     
@@ -668,7 +668,7 @@ Foam::LanduaLevich::massSourceML( volScalarField& rhoSource)
 
 
 Foam::tmp<Foam::volScalarField>
-Foam::LanduaLevich::alphaSourceML( volScalarField& rhoSource)
+Foam::LandauLevich::alphaSourceML( volScalarField& rhoSource)
 {
     Info<< "I'm inside alphaSourceML"<< endl;
 
