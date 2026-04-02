@@ -236,7 +236,7 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::ChenUtaka::hSourceML()
     // sourceCoeff *= 1/solidFvMesh.V();
 
     tmp<fvScalarMatrix> hSource(fvm::Sp(sourceCoeff, hsolid));
-
+    // tmp<fvScalarMatrix> hSource(fvm::Sp(hsolid , -sourceCoeff));
     return hSource;
 
 }

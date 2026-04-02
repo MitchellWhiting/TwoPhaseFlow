@@ -30,6 +30,7 @@
         "hardtWondraGasPhase.C": "cpp",
         "selectedGradExplicit.C": "cpp",
         "noMicrolayer.C": "cpp",
-        "LanduaLevich.C": "cpp"
+        "LanduaLevich.C": "cpp",
+        "LanduaLevich2.C": "cpp"
     }
 }
